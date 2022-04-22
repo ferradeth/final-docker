@@ -1,0 +1,38 @@
+version: "3"
+services:
+  nginx:
+    image: nginx:1.20.1-alpine
+    depends_on:
+      - php-fpm
+    volumes:
+      - .:/var/www
+    ports:
+      - "8080:80"
+    restart: on-failure
+  php-fpm:
+    build:
+      context: .
+    volumes:
+      - .:/var/www
+    restart: on-failure
+  mysql:
+    image: mysql:latest
+    volumes:
+      - "./.mysql-data/db:/var/lib/mysql"
+    restart: on-failure 
+    ports: 
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: mydb
+      MYSQL_PASSWORD: mydbpw
+networks:
+  back:
+    driver: bridge
+    enable_ipv6: false
+    internal: true
+    ipam:
+      driver: default
+  default:
+    driver: bridge
