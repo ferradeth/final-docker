@@ -2,19 +2,26 @@ version: "3"
 services:
   nginx:
     image: nginx:1.20.1-alpine
+    environment:
+      - VIRTUAL_HOST=localhost
     depends_on:
       - php-fpm
     volumes:
-      - .:/var/www
-    ports:
-      - "8080:80"
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+      - ./html/:/var/www/html/
     restart: on-failure
+    networks:
+      - frontend
+      - backend
   php-fpm:
     build:
-      context: .
+      context: ./php
     volumes:
-      - .:/var/www
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./html/:/var/www/html/
     restart: on-failure
+    networks:
+      - backend
   mysql:
     image: mysql:latest
     volumes:
@@ -24,15 +31,11 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpw
-      MYSQL_DATABASE: mydb
-      MYSQL_USER: mydb
-      MYSQL_PASSWORD: mydbpw
+    networks:
+      - backend
 networks:
-  back:
-    driver: bridge
-    enable_ipv6: false
-    internal: true
-    ipam:
-      driver: default
-  default:
-    driver: bridge
+  frontend:
+    external:
+      name: proxy_proxy
+  backend:
+    
